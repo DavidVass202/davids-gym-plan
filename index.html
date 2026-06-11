@@ -189,8 +189,10 @@
   }
   .sets .hd span:nth-child(4){text-align:right;}
   .set{
+    padding:6px 0;
+  }
+  .setgrid{
     display:grid;grid-template-columns:34px 1fr 1fr 64px;gap:8px;align-items:center;
-    padding:5px 0;
   }
   .set .sn{
     font-family:var(--display);font-weight:700;font-size:14px;color:var(--silver);
@@ -213,6 +215,21 @@
   }
   .set .last b{color:var(--silver);font-weight:600;}
   .set .last .none{color:#3c3f46;}
+  .set .last .pdiff{margin-top:2px;font-family:var(--display);font-weight:600;font-size:9px;letter-spacing:.08em;text-transform:uppercase;}
+  .set .last .p-E{color:#3ea866;}
+  .set .last .p-M{color:#e0a52a;}
+  .set .last .p-H{color:var(--red);}
+  .diffrow{display:flex;align-items:center;gap:6px;margin:9px 0 1px 42px;}
+  .diffrow .dlab{font-family:var(--display);font-weight:600;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--silver-dim);margin-right:2px;}
+  .dbtn{
+    flex:0 0 auto;font-family:var(--display);font-weight:600;font-size:11px;letter-spacing:.05em;
+    text-transform:uppercase;padding:6px 11px;border-radius:7px;background:var(--bg2);
+    border:1px solid var(--line);color:var(--silver-dim);cursor:pointer;transition:.12s;
+  }
+  .dbtn:active{transform:scale(.94);}
+  .dbtn.d-E.sel{background:#1f7a3d;border-color:#2f9e57;color:#fff;}
+  .dbtn.d-M.sel{background:#8a5d10;border-color:#e0a52a;color:#fff;}
+  .dbtn.d-H.sel{background:var(--red);border-color:var(--red);color:#fff;}
 
   /* ---- Progression accordion ---- */
   .guide{margin:22px 18px 0;border:1px solid var(--line);border-radius:14px;background:var(--card);overflow:hidden;}
@@ -269,23 +286,51 @@
     font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--silver-dim);
     margin-bottom:4px;font-weight:600;
   }
-  .tdisplay .val{font-size:26px;color:var(--silver);}
+  .tdisplay .val{font-size:23px;color:var(--silver);}
   .timerbar.live .tdisplay .val{color:var(--ink);}
   .timerbar.done .tdisplay .val{color:#fff;}
-  .tbtns{display:flex;gap:8px;align-items:center;}
+  .tbtns{display:flex;gap:6px;align-items:center;}
   .tbtn{
-    font-family:var(--display);font-weight:600;font-size:16px;letter-spacing:.02em;
+    font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:.02em;
     background:var(--card);border:1px solid var(--line);color:var(--silver);
-    border-radius:10px;padding:11px 15px;cursor:pointer;font-variant-numeric:tabular-nums;
+    border-radius:10px;padding:10px 11px;cursor:pointer;font-variant-numeric:tabular-nums;
     transition:.12s;
   }
   .tbtn:active{transform:scale(.95);}
   .tbtn.sel{background:linear-gradient(180deg,var(--red),#a8131e);border-color:var(--red);color:#fff;}
   .tstop{
-    width:44px;height:44px;border-radius:10px;background:var(--card);border:1px solid var(--line);
-    color:var(--silver);font-size:18px;cursor:pointer;line-height:1;
+    width:40px;height:40px;border-radius:10px;background:var(--card);border:1px solid var(--line);
+    color:var(--silver);font-size:18px;cursor:pointer;line-height:1;flex:0 0 auto;
   }
   .tstop:active{transform:scale(.95);border-color:var(--red);color:var(--red);}
+
+  /* ---- backup / restore modal ---- */
+  .modal{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.62);display:flex;align-items:flex-end;justify-content:center;}
+  .modal[hidden]{display:none;}
+  .sheet{
+    width:100%;max-width:560px;background:var(--bg2);border:1px solid var(--line);
+    border-radius:18px 18px 0 0;padding:18px 18px calc(22px + env(safe-area-inset-bottom));
+    max-height:90vh;overflow:auto;
+  }
+  .sheethead{display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:16px;}
+  .sheethead button{background:none;border:none;color:var(--silver);font-size:26px;cursor:pointer;line-height:1;padding:0 4px;}
+  .mhint{font-size:12px;color:var(--silver-dim);margin:8px 0 6px;line-height:1.5;}
+  .mlbl{display:block;font-family:var(--display);font-weight:600;letter-spacing:.12em;
+    text-transform:uppercase;font-size:10px;color:var(--silver-dim);margin:14px 0 6px;}
+  .sheet textarea{width:100%;height:84px;background:#000;border:1px solid var(--line);
+    border-radius:10px;color:var(--silver);font-family:ui-monospace,Menlo,Consolas,monospace;
+    font-size:11px;padding:10px;resize:vertical;}
+  .sheet textarea:focus{outline:none;border-color:var(--red);}
+  .mrow{display:flex;gap:8px;margin-top:8px;}
+  .mbtn{flex:1;font-family:var(--display);font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+    font-size:13px;padding:12px;border-radius:10px;background:var(--card);border:1px solid var(--line);
+    color:var(--silver);cursor:pointer;}
+  .mbtn.red{background:linear-gradient(180deg,var(--red),#a8131e);border-color:var(--red);color:#fff;}
+  .mbtn.wide{width:100%;margin-top:8px;}
+  .mbtn:active{transform:scale(.99);}
+  .mmsg{font-size:12.5px;color:#3ea866;margin:12px 0 0;min-height:16px;text-align:center;font-weight:600;}
+  .mmsg.err{color:var(--red);}
 
   @media (prefers-reduced-motion: reduce){*{transition:none!important;}}
 </style>
@@ -328,8 +373,11 @@
   </details>
 
   <footer>
-    <p class="note" id="saveNote">Your reps &amp; weights save on this device.</p>
-    <button class="reset" id="resetBtn">Reset all data</button>
+    <p class="note" id="saveNote">Your reps &amp; weights save on this phone — including across app updates.</p>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+      <button class="reset" id="backupBtn">Backup / restore</button>
+      <button class="reset" id="resetBtn">Reset all data</button>
+    </div>
   </footer>
   <p class="disclaimer">General training guidance, not medical advice. You mentioned lower-back pain — if anything causes pain (not normal muscle effort), stop and check with a physio or GP. Warm up before every session.</p>
 </div>
@@ -337,12 +385,30 @@
 <div class="timerbar" id="timerbar">
   <div class="tdisplay">
     <span class="lab" id="tlab">Rest timer</span>
-    <span class="val" id="tval">Tap to start</span>
+    <span class="val" id="tval">Ready</span>
   </div>
   <div class="tbtns">
+    <button class="tbtn" data-min="0.5">0:30</button>
     <button class="tbtn" data-min="1">1:00</button>
     <button class="tbtn" data-min="2">2:00</button>
     <button class="tstop" id="tstop" hidden aria-label="Stop timer">&times;</button>
+  </div>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="sheet">
+    <div class="sheethead"><span>Backup &amp; restore</span><button id="mClose" aria-label="Close">&times;</button></div>
+    <p class="mhint">Your data already stays on this phone between updates. Use this to copy it out — paste it into the chat with any enhancement request — or to restore it into a fresh version of the app.</p>
+    <label class="mlbl">Your data</label>
+    <textarea id="mExport" readonly></textarea>
+    <div class="mrow">
+      <button class="mbtn red" id="mCopy">Copy</button>
+      <button class="mbtn" id="mDl">Download</button>
+    </div>
+    <label class="mlbl">Restore from a backup</label>
+    <textarea id="mImport" placeholder="Paste backup data here, then tap Load…"></textarea>
+    <button class="mbtn wide" id="mLoad">Load this data</button>
+    <p class="mmsg" id="mMsg"></p>
   </div>
 </div>
 
@@ -502,14 +568,28 @@ function renderSession(){
       const cur = cell(curWeek, curSes, ei, set) || {};
       const prev = curWeek>1 ? (cell(curWeek-1, curSes, ei, set)) : null;
       const filled = (cur.reps && cur.weight) ? " filled":"";
-      const lastTxt = (prev && (prev.weight||prev.reps))
-        ? `<b>${prev.weight||"–"}kg</b> × ${prev.reps||"–"}`
-        : `<span class="none">—</span>`;
+      let lastTxt;
+      if(prev && (prev.weight||prev.reps||prev.diff)){
+        const dmap={E:"Easy",M:"Med",H:"Hard"};
+        const dl = prev.diff ? `<div class="pdiff p-${prev.diff}">${dmap[prev.diff]}</div>` : "";
+        lastTxt = `<div><b>${prev.weight||"–"}kg</b> × ${prev.reps||"–"}</div>${dl}`;
+      } else {
+        lastTxt = `<span class="none">—</span>`;
+      }
+      const D = cur.diff||"";
       rows += `<div class="set${filled}" data-set="${set}">
-        <div class="sn">${set+1}</div>
-        <input inputmode="numeric" placeholder="reps" value="${cur.reps||""}" data-f="reps" data-ex="${ei}" data-set="${set}">
-        <input inputmode="decimal" placeholder="kg" value="${cur.weight||""}" data-f="weight" data-ex="${ei}" data-set="${set}">
-        <div class="last">${lastTxt}</div>
+        <div class="setgrid">
+          <div class="sn">${set+1}</div>
+          <input inputmode="numeric" placeholder="reps" value="${cur.reps||""}" data-f="reps" data-ex="${ei}" data-set="${set}">
+          <input inputmode="decimal" placeholder="kg" value="${cur.weight||""}" data-f="weight" data-ex="${ei}" data-set="${set}">
+          <div class="last">${lastTxt}</div>
+        </div>
+        <div class="diffrow">
+          <span class="dlab">Felt</span>
+          <button class="dbtn d-E${D==="E"?" sel":""}" data-d="E" data-ex="${ei}" data-set="${set}">Easy</button>
+          <button class="dbtn d-M${D==="M"?" sel":""}" data-d="M" data-ex="${ei}" data-set="${set}">Med</button>
+          <button class="dbtn d-H${D==="H"?" sel":""}" data-d="H" data-ex="${ei}" data-set="${set}">Hard</button>
+        </div>
       </div>`;
     }
     html += `<div class="ex">
@@ -538,6 +618,16 @@ function renderSession(){
       const wi = row.querySelector('input[data-f="weight"]').value.trim();
       row.classList.toggle("filled", !!(ri&&wi));
       renderWeeksDots();
+    });
+  });
+
+  wrapEl.querySelectorAll(".dbtn").forEach(b=>{
+    b.addEventListener("click",()=>{
+      const ex=+b.dataset.ex, set=+b.dataset.set, d=b.dataset.d;
+      const already=b.classList.contains("sel");
+      b.closest(".diffrow").querySelectorAll(".dbtn").forEach(x=>x.classList.remove("sel"));
+      if(already){ setCell(curWeek,curSes,ex,set,"diff",""); }
+      else { b.classList.add("sel"); setCell(curWeek,curSes,ex,set,"diff",d); }
     });
   });
 }
@@ -598,7 +688,7 @@ renderSession();
     btns.forEach(b=>b.classList.remove("sel")); stop.hidden=true;
     beep(); if(navigator.vibrate) navigator.vibrate([220,120,220]);
     clearTimeout(idleT);
-    idleT=setTimeout(()=>{ bar.classList.remove("done"); val.textContent="Tap to start"; },3000);
+    idleT=setTimeout(()=>{ bar.classList.remove("done"); val.textContent="Ready"; },3000);
   }
   function start(min){
     clearTimeout(idleT);
@@ -612,7 +702,7 @@ renderSession();
   function cancel(){
     clearInterval(iv); iv=null; clearTimeout(idleT);
     bar.classList.remove("live","done");
-    val.textContent="Tap to start"; lab.textContent="Rest timer";
+    val.textContent="Ready"; lab.textContent="Rest timer";
     btns.forEach(b=>b.classList.remove("sel")); stop.hidden=true;
   }
   btns.forEach(b=>b.addEventListener("click",()=>start(+b.dataset.min)));
@@ -623,6 +713,54 @@ renderSession();
     }
   });
 })();
-</script>
+
+/* ---------- backup / restore ---------- */
+(function(){
+  const modal=document.getElementById("modal");
+  const exp=document.getElementById("mExport");
+  const imp=document.getElementById("mImport");
+  const msgEl=document.getElementById("mMsg");
+  function msg(t,err){ msgEl.textContent=t; msgEl.className="mmsg"+(err?" err":""); }
+  function open(){
+    exp.value=JSON.stringify({app:"gym8wk",v:1,exported:new Date().toISOString(),log:store});
+    imp.value=""; msg("");
+    modal.hidden=false;
+  }
+  function close(){ modal.hidden=true; }
+  document.getElementById("backupBtn").addEventListener("click",open);
+  document.getElementById("mClose").addEventListener("click",close);
+  modal.addEventListener("click",e=>{ if(e.target===modal) close(); });
+
+  document.getElementById("mCopy").addEventListener("click",async ()=>{
+    try{ await navigator.clipboard.writeText(exp.value); msg("Copied — paste it into the chat."); }
+    catch(e){
+      exp.focus(); exp.select();
+      try{ document.execCommand("copy"); msg("Copied — paste it into the chat."); }
+      catch(_){ msg("Select the text above and copy it manually.",true); }
+    }
+  });
+  document.getElementById("mDl").addEventListener("click",()=>{
+    try{
+      const blob=new Blob([exp.value],{type:"application/json"});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement("a");
+      a.href=url; a.download="gym-plan-backup.json";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),1500);
+      msg("Downloaded gym-plan-backup.json");
+    }catch(e){ msg("Download failed — use Copy instead.",true); }
+  });
+  document.getElementById("mLoad").addEventListener("click",()=>{
+    const raw=imp.value.trim();
+    if(!raw){ msg("Paste your backup data first.",true); return; }
+    try{
+      let obj=JSON.parse(raw);
+      if(obj && typeof obj==="object" && obj.log) obj=obj.log;
+      if(typeof obj!=="object" || obj===null || Array.isArray(obj)) throw 0;
+      store=obj; save(); renderWeeks(); renderSession();
+      msg("Loaded — your data is restored.");
+    }catch(e){ msg("That doesn't look like valid backup data.",true); }
+  });
+})();</script>
 </body>
 </html>
