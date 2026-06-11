@@ -304,6 +304,57 @@
   }
   .tstop:active{transform:scale(.95);border-color:var(--red);color:var(--red);}
 
+  /* ---- segmented mode switch ---- */
+  .seg{display:flex;gap:6px;margin:14px 18px 2px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px;}
+  .seg button{
+    flex:1;font-family:var(--display);font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+    font-size:13px;padding:11px;border-radius:9px;background:transparent;border:none;color:var(--silver-dim);cursor:pointer;transition:.15s;
+  }
+  .seg button.active{background:linear-gradient(180deg,var(--red),#a8131e);color:#fff;box-shadow:0 3px 12px rgba(225,29,42,.3);}
+
+  /* ---- outdoor complete checkbox ---- */
+  .ocheck{
+    margin-top:11px;width:100%;display:flex;align-items:center;gap:10px;cursor:pointer;
+    background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:11px 12px;
+    font-family:var(--display);font-weight:600;letter-spacing:.04em;font-size:13px;color:var(--silver);
+    text-transform:uppercase;transition:.15s;text-align:left;
+  }
+  .ocheck .box{
+    width:22px;height:22px;border-radius:6px;border:2px solid var(--silver-dim);flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;font-size:13px;color:transparent;line-height:1;
+  }
+  .ocheck.on{border-color:#2f9e57;color:#fff;background:rgba(47,158,87,.14);}
+  .ocheck.on .box{background:#2f9e57;border-color:#2f9e57;color:#fff;}
+
+  /* ---- progress ---- */
+  .pcard{margin:14px 18px 0;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 15px 13px;}
+  .pcard h3{font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.03em;font-size:17px;margin:0 0 3px;}
+  .pcard .sub{font-size:12px;color:var(--silver-dim);margin:0 0 12px;}
+  .pstat{display:flex;align-items:baseline;gap:8px;margin:2px 0 13px;}
+  .pstat .big{font-family:var(--display);font-weight:700;font-size:42px;line-height:1;color:var(--red);}
+  .pstat .of{font-family:var(--display);font-weight:600;font-size:15px;color:var(--silver-dim);}
+  .pstat .pct{margin-left:auto;font-family:var(--display);font-weight:600;font-size:13px;color:var(--silver);background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:6px 9px;}
+  .chart{width:100%;height:auto;display:block;}
+  .legend{display:flex;gap:16px;margin-top:10px;font-size:11px;color:var(--silver-dim);}
+  .legend span{display:flex;align-items:center;gap:6px;}
+  .legend i{width:11px;height:11px;border-radius:3px;display:inline-block;}
+  .psel{
+    width:100%;background:#000;border:1px solid var(--line);border-radius:10px;color:var(--ink);
+    font-family:var(--body);font-size:14px;padding:11px 12px;margin:0 0 10px;-webkit-appearance:none;appearance:none;
+  }
+  .psel:focus{outline:none;border-color:var(--red);}
+  .metricbtns{display:flex;gap:6px;margin:0 0 10px;}
+  .metricbtns button{
+    flex:1;font-family:var(--display);font-weight:600;letter-spacing:.04em;text-transform:uppercase;font-size:11px;
+    padding:9px 4px;border-radius:8px;background:var(--bg2);border:1px solid var(--line);color:var(--silver-dim);cursor:pointer;transition:.12s;
+  }
+  .metricbtns button.active{background:var(--card2);border-color:var(--red);color:var(--ink);}
+  .metricbtns button:disabled{opacity:.4;}
+  .pnote{font-size:11.5px;color:var(--silver-dim);margin:10px 0 0;line-height:1.5;}
+  .pempty{font-size:13px;color:var(--silver-dim);text-align:center;padding:26px 8px;}
+  .pbest{font-family:var(--display);font-weight:600;font-size:13px;color:var(--silver);margin-top:9px;}
+  .pbest b{color:var(--ink);}
+
   /* ---- backup / restore modal ---- */
   .modal{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.62);display:flex;align-items:flex-end;justify-content:center;}
   .modal[hidden]{display:none;}
@@ -343,6 +394,12 @@
     <p class="subline" id="subline">Log every set. Beat last week.</p>
   </header>
 
+  <div class="seg" id="seg">
+    <button data-mode="train" class="active">Train</button>
+    <button data-mode="progress">Progress</button>
+  </div>
+
+  <div id="trainView">
   <div class="weeks-label">
     <span class="lbl">Week</span>
     <span class="phase-tag" id="phaseTag">Foundation</span>
@@ -371,6 +428,9 @@
       <p>Plyometrics and sprints go <b>first</b>, on the upper-body days, so your legs are fresh and the reps are explosive. Quality over fatigue — stop a set the moment power drops off.</p>
     </div>
   </details>
+  </div><!-- /trainView -->
+
+  <div id="progressView" hidden></div>
 
   <footer>
     <p class="note" id="saveNote">Your reps &amp; weights save on this phone — including across app updates.</p>
@@ -502,8 +562,20 @@ function setCell(week, ses, ex, set, field, val){
 }
 function weekHasData(week){
   const wk = store["w"+week]; if(!wk) return false;
-  for(const s in wk) for(const e in wk[s]) for(const set of wk[s][e]||[])
-    if(set && (set.reps || set.weight)) return true;
+  for(const s in wk){ for(const e in wk[s]){ const a=wk[s][e]; if(!Array.isArray(a)) continue;
+    for(const set of a) if(set && (set.reps || set.weight)) return true; } }
+  return false;
+}
+function getOutdoor(week,ses){ return !!(((store["w"+week]||{})["s"+ses]||{}).out); }
+function setOutdoor(week,ses,val){
+  const k="w"+week,s="s"+ses; store[k]=store[k]||{}; store[k][s]=store[k][s]||{};
+  if(val) store[k][s].out=1; else delete store[k][s].out;
+  save();
+}
+function gymDone(week,ses){
+  const s=(store["w"+week]||{})["s"+ses]; if(!s) return false;
+  for(const e in s){ const a=s[e]; if(!Array.isArray(a)) continue;
+    for(const st of a) if(st && (st.reps||st.weight)) return true; }
   return false;
 }
 
@@ -555,10 +627,12 @@ function renderSession(){
 
   if(s.outdoor){
     const o = s.outdoor;
+    const odone = getOutdoor(curWeek,curSes);
     html += `<div class="outdoor">
       <div class="oh">↗ Outdoor: ${o.title} <span>${o.meta}</span></div>
       <p>${o.text}</p>
       <p class="cue">${o.cue}</p>
+      <button class="ocheck${odone?" on":""}" id="ocheck"><span class="box">&#10003;</span>${odone?`${o.title} done — week ${curWeek}`:`Mark ${o.title.toLowerCase()} complete`}</button>
     </div>`;
   }
 
@@ -630,6 +704,17 @@ function renderSession(){
       else { b.classList.add("sel"); setCell(curWeek,curSes,ex,set,"diff",d); }
     });
   });
+
+  const oc=document.getElementById("ocheck");
+  if(oc){
+    oc.addEventListener("click",()=>{
+      const now=!getOutdoor(curWeek,curSes);
+      setOutdoor(curWeek,curSes,now);
+      oc.classList.toggle("on",now);
+      const t=SESSIONS[curSes].outdoor.title;
+      oc.innerHTML=`<span class="box">&#10003;</span>${now?`${t} done — week ${curWeek}`:`Mark ${t.toLowerCase()} complete`}`;
+    });
+  }
 }
 function renderWeeksDots(){
   weeksEl.querySelectorAll(".week").forEach((el,i)=>{
@@ -640,6 +725,7 @@ function renderWeeksDots(){
 document.getElementById("resetBtn").addEventListener("click", ()=>{
   if(confirm("Clear every logged rep and weight? This can't be undone.")){
     store = {}; save(); renderWeeks(); renderSession();
+    if(!document.getElementById("progressView").hidden) renderProgress();
   }
 });
 
@@ -647,6 +733,164 @@ if(!window.__persist){
   document.getElementById("saveNote").innerHTML =
     "Preview mode — saving is off here. It works once hosted on GitHub Pages or added to your homescreen.";
 }
+
+/* ---------- progress: charts ---------- */
+const C={red:"#e11d2a",silver:"#c4c8cf",dim:"#7c828c",grid:"#24242b",ink:"#f3f4f6",green:"#3ea866"};
+
+function exSeries(ses,ex,metric){
+  const pts=[];
+  for(let w=1;w<=8;w++){
+    const arr=((store["w"+w]||{})["s"+ses]||{})["e"+ex];
+    if(!Array.isArray(arr)) continue;
+    let best=null, vol=0, has=false;
+    for(const st of arr){
+      if(!st) continue;
+      const r=parseFloat(st.reps), wt=parseFloat(st.weight);
+      const hasW=!isNaN(wt), hasR=!isNaN(r);
+      if(hasW&&hasR){ vol+=r*wt; has=true; }
+      if(metric==="1rm" && hasW&&hasR){ const v=wt*(1+r/30); if(best===null||v>best)best=v; }
+      else if(metric==="top" && hasW){ if(best===null||wt>best)best=wt; }
+    }
+    if(metric==="vol"){ if(has) pts.push({x:w,y:Math.round(vol)}); }
+    else if(best!==null){ pts.push({x:w,y:Math.round(best*10)/10}); }
+  }
+  return pts;
+}
+function grpSeries(ses){
+  const pts=[];
+  for(let w=1;w<=8;w++){
+    const s=(store["w"+w]||{})["s"+ses]; if(!s) continue;
+    let vol=0, has=false;
+    for(const e in s){ const a=s[e]; if(!Array.isArray(a)) continue;
+      for(const st of a){ if(!st) continue; const r=parseFloat(st.reps),wt=parseFloat(st.weight);
+        if(!isNaN(r)&&!isNaN(wt)){ vol+=r*wt; has=true; } } }
+    if(has) pts.push({x:w,y:Math.round(vol)});
+  }
+  return pts;
+}
+
+function svgLine(pts,opt){
+  opt=opt||{};
+  const W=324,H=178,L=40,R=14,T=16,B=26;
+  if(!pts.length) return `<div class="pempty">No data logged yet — fill in some sets and your trend appears here.</div>`;
+  let vals=pts.map(p=>p.y); if(opt.goal!=null) vals=vals.concat([opt.goal]);
+  let mn=Math.min(...vals), mx=Math.max(...vals);
+  let yMin=opt.fromZero?0:Math.max(0, mn-(mx-mn)*0.25-(mx===mn?Math.max(1,mx*0.08):0));
+  let yMax=mx+(mx-mn)*0.20+(mx===mn?Math.max(1,mx*0.10):1);
+  if(yMax<=yMin) yMax=yMin+1;
+  const xs=w=>L+(W-L-R)*((w-1)/7);
+  const ys=v=>H-B-(H-T-B)*((v-yMin)/(yMax-yMin));
+  let g="";
+  for(let i=0;i<=2;i++){ const v=yMin+(yMax-yMin)*i/2, y=ys(v);
+    g+=`<line x1="${L}" y1="${y.toFixed(1)}" x2="${W-R}" y2="${y.toFixed(1)}" stroke="${C.grid}" stroke-width="1"/>`;
+    g+=`<text x="${L-6}" y="${(y+3.5).toFixed(1)}" text-anchor="end" font-size="9" fill="${C.dim}" font-family="monospace">${Math.round(v)}</text>`; }
+  for(let w=1;w<=8;w++) g+=`<text x="${xs(w).toFixed(1)}" y="${H-B+15}" text-anchor="middle" font-size="9" fill="${C.dim}" font-family="monospace">${w}</text>`;
+  if(opt.goal!=null && opt.goal>=yMin && opt.goal<=yMax){ const y=ys(opt.goal);
+    g+=`<line x1="${L}" y1="${y.toFixed(1)}" x2="${W-R}" y2="${y.toFixed(1)}" stroke="${C.red}" stroke-width="1.4" stroke-dasharray="5 4" opacity="0.85"/>`;
+    g+=`<text x="${W-R}" y="${(y-5).toFixed(1)}" text-anchor="end" font-size="9.5" fill="${C.red}" font-weight="700">${opt.goalLabel||("GOAL "+opt.goal)}</text>`; }
+  const d=pts.map((p,i)=>(i?"L":"M")+xs(p.x).toFixed(1)+" "+ys(p.y).toFixed(1)).join(" ");
+  g+=`<path d="${d}" fill="none" stroke="${C.red}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`;
+  pts.forEach((p,i)=>{ const last=i===pts.length-1;
+    g+=`<circle cx="${xs(p.x).toFixed(1)}" cy="${ys(p.y).toFixed(1)}" r="${last?4.5:3}" fill="${last?C.red:C.ink}" stroke="${C.red}" stroke-width="${last?2:1.5}"/>`; });
+  const lp=pts[pts.length-1];
+  g+=`<text x="${xs(lp.x).toFixed(1)}" y="${Math.max(11,ys(lp.y)-9).toFixed(1)}" text-anchor="middle" font-size="11" fill="${C.ink}" font-weight="700">${lp.y}${opt.unit||""}</text>`;
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img">${g}</svg>`;
+}
+
+function svgSessions(){
+  const W=324,H=178,L=24,R=14,T=16,B=26, yMax=6;
+  const ys=v=>H-B-(H-T-B)*(v/yMax);
+  const bw=(W-L-R)/8*0.56;
+  let g="";
+  for(let i=0;i<=3;i++){ const v=yMax*i/3, y=ys(v);
+    g+=`<line x1="${L}" y1="${y.toFixed(1)}" x2="${W-R}" y2="${y.toFixed(1)}" stroke="${C.grid}" stroke-width="1"/>`;
+    g+=`<text x="${L-5}" y="${(y+3.5).toFixed(1)}" text-anchor="end" font-size="9" fill="${C.dim}" font-family="monospace">${Math.round(v)}</text>`; }
+  for(let w=1;w<=8;w++){
+    const cx=L+(W-L-R)*((w-0.5)/8);
+    const gym=[0,1,2,3].filter(se=>gymDone(w,se)).length;
+    const out=[1,3].filter(se=>getOutdoor(w,se)).length;
+    const x=cx-bw/2, yGym=ys(gym), tot=gym+out;
+    g+=`<rect x="${x.toFixed(1)}" y="${yGym.toFixed(1)}" width="${bw.toFixed(1)}" height="${(H-B-yGym).toFixed(1)}" fill="${C.red}" rx="2"/>`;
+    if(out>0){ const yTop=ys(tot); g+=`<rect x="${x.toFixed(1)}" y="${yTop.toFixed(1)}" width="${bw.toFixed(1)}" height="${(yGym-yTop).toFixed(1)}" fill="${C.silver}" rx="2"/>`; }
+    if(tot>0) g+=`<text x="${cx.toFixed(1)}" y="${(ys(tot)-5).toFixed(1)}" text-anchor="middle" font-size="10" fill="${C.ink}" font-weight="700">${tot}</text>`;
+    g+=`<text x="${cx.toFixed(1)}" y="${H-B+15}" text-anchor="middle" font-size="9" fill="${C.dim}" font-family="monospace">${w}</text>`;
+  }
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img">${g}</svg>`;
+}
+
+let progSel="ex:1:0", progMetric="1rm";
+function buildSelector(){
+  let o=`<optgroup label="Muscle groups · total volume">`;
+  SESSIONS.forEach((s,i)=> o+=`<option value="grp:${i}"${progSel==="grp:"+i?" selected":""}>${i+1} · ${s.name} (whole session)</option>`);
+  o+=`</optgroup>`;
+  SESSIONS.forEach((s,i)=>{ o+=`<optgroup label="${i+1} · ${s.name}">`;
+    s.exercises.forEach((ex,ei)=> o+=`<option value="ex:${i}:${ei}"${progSel===`ex:${i}:${ei}`?" selected":""}>${ex.name.replace(/&times;/g,"x")}</option>`);
+    o+=`</optgroup>`; });
+  return o;
+}
+
+function renderProgress(){
+  const pv=document.getElementById("progressView");
+  let totalDone=0;
+  for(let w=1;w<=8;w++) totalDone += [0,1,2,3].filter(se=>gymDone(w,se)).length + [1,3].filter(se=>getOutdoor(w,se)).length;
+  const pct=Math.round(totalDone/48*100);
+
+  const isGrp=progSel.startsWith("grp:");
+  let series, unit="", titleMetric;
+  if(isGrp){ series=grpSeries(+progSel.split(":")[1]); titleMetric="Total volume — kg lifted (reps × weight)"; }
+  else { const p=progSel.split(":"), se=+p[1], ex=+p[2]; series=exSeries(se,ex,progMetric);
+    if(progMetric==="vol"){ titleMetric="Total volume — kg lifted (reps × weight)"; }
+    else if(progMetric==="top"){ unit="kg"; titleMetric="Heaviest set each week"; }
+    else { unit="kg"; titleMetric="Estimated 1-rep max each week"; } }
+
+  const bench=exSeries(1,0,"1rm");
+  const benchBest=bench.length?bench[bench.length-1].y:null;
+
+  pv.innerHTML=`<div>
+    <div class="pcard">
+      <h3>Camp progress</h3>
+      <p class="sub">Sessions completed across the 8 weeks</p>
+      <div class="pstat"><span class="big">${totalDone}</span><span class="of">/ 48 sessions</span><span class="pct">${pct}%</span></div>
+      ${svgSessions()}
+      <div class="legend"><span><i style="background:${C.red}"></i>Gym sessions</span><span><i style="background:${C.silver}"></i>Outdoor (plyo / sprints)</span></div>
+      <p class="pnote">Gym sessions tick off automatically once you log a set that week. Outdoor sessions tick off when you tap “complete” on the plyometrics or sprints block in Train.</p>
+    </div>
+    <div class="pcard">
+      <h3>Bench &#8594; 100 kg</h3>
+      <p class="sub">Best estimated 1-rep max each week</p>
+      ${svgLine(bench,{goal:100,goalLabel:"100kg GOAL",unit:"kg"})}
+      ${benchBest!=null?`<p class="pbest">Best est. 1RM so far: <b>${benchBest}kg</b> · ${Math.max(0,Math.round(100-benchBest))}kg to go</p>`:""}
+    </div>
+    <div class="pcard">
+      <h3>Exercise &amp; group progress</h3>
+      <p class="sub">${titleMetric}</p>
+      <select class="psel" id="psel">${buildSelector()}</select>
+      <div class="metricbtns" id="metricbtns">
+        <button data-m="top" class="${progMetric==='top'&&!isGrp?'active':''}" ${isGrp?'disabled':''}>Top weight</button>
+        <button data-m="1rm" class="${progMetric==='1rm'&&!isGrp?'active':''}" ${isGrp?'disabled':''}>Est 1RM</button>
+        <button data-m="vol" class="${(progMetric==='vol'||isGrp)?'active':''}" ${isGrp?'disabled':''}>Volume</button>
+      </div>
+      ${svgLine(series,{unit:unit,fromZero:(isGrp||progMetric==='vol')})}
+      <p class="pnote">Est 1RM blends weight and reps, so the line climbs even in weeks where you add reps before adding weight. Groups show the total kg moved in that whole session.</p>
+    </div>
+  </div>`;
+
+  const sel=document.getElementById("psel");
+  sel.addEventListener("change",()=>{ progSel=sel.value; renderProgress(); });
+  document.getElementById("metricbtns").querySelectorAll("button").forEach(b=>{
+    b.addEventListener("click",()=>{ if(b.disabled) return; progMetric=b.dataset.m; renderProgress(); });
+  });
+}
+
+function setMode(m){
+  document.getElementById("trainView").hidden = (m!=="train");
+  document.getElementById("progressView").hidden = (m!=="progress");
+  document.getElementById("timerbar").style.display = (m==="progress") ? "none" : "";
+  document.querySelectorAll("#seg button").forEach(b=>b.classList.toggle("active", b.dataset.mode===m));
+  if(m==="progress") renderProgress();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll("#seg button").forEach(b=> b.addEventListener("click", ()=>setMode(b.dataset.mode)));
 
 renderWeeks();
 renderTabs();
@@ -758,6 +1002,7 @@ renderSession();
       if(obj && typeof obj==="object" && obj.log) obj=obj.log;
       if(typeof obj!=="object" || obj===null || Array.isArray(obj)) throw 0;
       store=obj; save(); renderWeeks(); renderSession();
+      if(!document.getElementById("progressView").hidden) renderProgress();
       msg("Loaded — your data is restored.");
     }catch(e){ msg("That doesn't look like valid backup data.",true); }
   });
